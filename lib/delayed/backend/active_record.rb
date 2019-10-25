@@ -5,10 +5,11 @@ module Delayed
   module Backend
     module ActiveRecord
       class Configuration
-        attr_reader :reserve_sql_strategy
+        attr_reader :reserve_sql_strategy, :fifo_queues
 
         def initialize
           self.reserve_sql_strategy = :optimized_sql
+          self.fifo_queues = []
         end
 
         def reserve_sql_strategy=(val)
@@ -17,6 +18,19 @@ module Delayed
           end
 
           @reserve_sql_strategy = val
+        end
+
+        def fifo_queues=(val)
+          if !val.kind_of?(Array)
+            raise ArgumentError, "should be an array"
+          end
+
+          @fifo_queues = val
+        end
+
+        def fifo_queues?(queues)
+          queues = [queues] unless queues.kind_of?(Array)
+          !(@fifo_queues & queues).empty?
         end
       end
 
@@ -61,6 +75,15 @@ module Delayed
           )
         end
 
+        def self.scheduled_to_retry(worker_name, max_run_time)
+          where(
+            "attempts > 0 AND run_at > ? AND ((locked_at IS NULL OR locked_at < ?) OR locked_by = ?) AND failed_at IS NULL",
+            db_time_now,
+            db_time_now - max_run_time,
+            worker_name
+          )
+        end
+
         def self.before_fork
           ::ActiveRecord::Base.clear_all_connections!
         end
@@ -81,6 +104,16 @@ module Delayed
             .max_priority
             .for_queues
             .by_priority
+
+          # Do not reserve new jobs, if there are failed jobs scheduled to retry
+          if Delayed::Backend::ActiveRecord.configuration.fifo_queues?(Worker.queues) ||
+             ((Worker.queues.blank? || Worker.queues.include?("*") && !Delayed::Backend::ActiveRecord.configuration.fifo_queues.empty?))
+            scheduled_to_retry_scope =
+              scheduled_to_retry(worker.name, max_run_time)
+              .for_queues
+
+            return nil if scheduled_to_retry_scope.limit(1).select('id').length > 0
+          end
 
           reserve_with_scope(ready_scope, worker, db_time_now)
         end
