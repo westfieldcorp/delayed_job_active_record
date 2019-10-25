@@ -21,15 +21,13 @@ module Delayed
         end
 
         def fifo_queues=(val)
-          if !val.kind_of?(Array)
-            raise ArgumentError, "should be an array"
-          end
+          raise ArgumentError, "should be an array" unless val.is_a?(Array)
 
           @fifo_queues = val
         end
 
         def fifo_queues?(queues)
-          queues = [queues] unless queues.kind_of?(Array)
+          queues = [queues] unless queues.is_a?(Array)
           !(@fifo_queues & queues).empty?
         end
       end
@@ -77,7 +75,8 @@ module Delayed
 
         def self.scheduled_to_retry(worker_name, max_run_time)
           where(
-            "attempts > 0 AND run_at > ? AND ((locked_at IS NULL OR locked_at < ?) OR locked_by = ?) AND failed_at IS NULL",
+            "attempts > 0 AND run_at > ? AND" \
+            "((locked_at IS NULL OR locked_at < ?) OR locked_by = ?) AND failed_at IS NULL",
             db_time_now,
             db_time_now - max_run_time,
             worker_name
@@ -97,7 +96,15 @@ module Delayed
           where(locked_by: worker_name).update_all(locked_by: nil, locked_at: nil)
         end
 
-        def self.reserve(worker, max_run_time = Worker.max_run_time)
+        def self.worker_have_fifo_queues?
+          Delayed::Backend::ActiveRecord.configuration.fifo_queues?(Worker.queues) ||
+            (
+              (Worker.queues.blank? || Worker.queues.include?("*") &&
+              !Delayed::Backend::ActiveRecord.configuration.fifo_queues.empty?)
+            )
+        end
+
+        def self.reserve(worker, max_run_time = Worker.max_run_time) # rubocop:disable Metrics/AbcSize
           ready_scope =
             ready_to_run(worker.name, max_run_time)
             .min_priority
@@ -106,13 +113,12 @@ module Delayed
             .by_priority
 
           # Do not reserve new jobs, if there are failed jobs scheduled to retry
-          if Delayed::Backend::ActiveRecord.configuration.fifo_queues?(Worker.queues) ||
-             ((Worker.queues.blank? || Worker.queues.include?("*") && !Delayed::Backend::ActiveRecord.configuration.fifo_queues.empty?))
+          if worker_have_fifo_queues?
             scheduled_to_retry_scope =
               scheduled_to_retry(worker.name, max_run_time)
               .for_queues
 
-            return nil if scheduled_to_retry_scope.limit(1).select('id').length > 0
+            return nil unless scheduled_to_retry_scope.limit(1).select("id").empty?
           end
 
           reserve_with_scope(ready_scope, worker, db_time_now)
