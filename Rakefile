@@ -26,6 +26,13 @@ task :adapter do
   ENV["ADAPTER"] = nil
 end
 
+Rake::Task[:spec].enhance do
+  require "simplecov"
+  require "coveralls"
+
+  Coveralls::SimpleCov::Formatter.new.format(SimpleCov.result)
+end
+
 require "rubocop/rake_task"
 RuboCop::RakeTask.new
 

@@ -7,7 +7,7 @@ services:
   - postgresql
 env:
   global:
-    - COMMAND=rake
+    - COMMAND=rspec
   
 rvm: # Supported
   - 2.7.4
