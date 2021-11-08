@@ -7,8 +7,6 @@ services:
   - postgresql
 addons:
   postgresql: '9.6'
-before_script:
-  - psql -c 'create database delayed_job_test;' -U postgres
 script: bundle exec $COMMAND
 env:
   global:
@@ -23,6 +21,8 @@ matrix:
   include:
     - rvm: 2.7.4
       before_script: psql -c 'create database delayed_job_test;' -U postgres
+      env:
+        - ADAPTER=postgresql
     
 
 sudo: false
