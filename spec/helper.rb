@@ -2,6 +2,7 @@
 
 require "simplecov"
 require "coveralls"
+require "erb"
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
   [
@@ -33,7 +34,7 @@ gemfile = ENV["BUNDLE_GEMFILE"]
 db_adapter ||= gemfile && gemfile[%r{gemfiles/(.*?)/}] && $1 # rubocop:disable PerlBackrefs
 db_adapter ||= "sqlite3"
 
-config = YAML.load(File.read("spec/database.yml"))
+config = YAML.load(ERB.new(File.read("spec/database.yml")).result)
 ActiveRecord::Base.establish_connection config[db_adapter]
 ActiveRecord::Base.logger = Delayed::Worker.logger
 ActiveRecord::Migration.verbose = false

@@ -5,9 +5,6 @@ branches:
     - PUP-11
 services:
   - postgresql
-addons:
-  postgresql: '9.6'
-script: bundle exec $COMMAND
 env:
   global:
     - COMMAND=rspec
@@ -20,9 +17,25 @@ jdk: oraclejdk11
 matrix:
   include:
     - rvm: 2.7.4
+      addons:
+        postgresql: '9.6'
       before_script: psql -c 'create database delayed_job_test;' -U postgres
+      script: bundle exec $COMMAND
       env:
         - ADAPTER=postgresql
+    - rvm: 2.7.4
+      addons:
+        postgresql: "13"
+        apt:
+          packages:
+          - postgresql-13
+          - postgresql-client-13
+      before_script: psql -c 'create database delayed_job_test;' -U travis -p 5433
+      script: bundle exec $COMMAND
+      env:
+        - ADAPTER=postgresql
+        - PGPORT=5433
+        - PGUSER=travis
     
 
 sudo: false

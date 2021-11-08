@@ -1,4 +1,5 @@
 postgresql:
   adapter: postgresql
   database: delayed_job_test
-  username: postgres
+  port: <%= ENV['PGPORT'] || 5432 %>
+  username: <%= ENV['PGUSER'] || 'postgres' %>
