@@ -2,7 +2,6 @@ language: ruby
 branches:
   only:
     - master
-    - PUP-11
 services:
   - mysql
   - postgresql
