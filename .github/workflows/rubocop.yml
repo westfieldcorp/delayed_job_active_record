@@ -1,5 +1,6 @@
 name: RuboCop
 
+on: []
 
 jobs:
   build:
