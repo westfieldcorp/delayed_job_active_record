@@ -12,15 +12,13 @@ group :test do
   end
 
   platforms :ruby, :mswin, :mingw do
-    gem "mysql2", "~> 0.4.5"
     gem "pg", "~> 0.18"
-    gem "sqlite3"
   end
 
-  gem "rspec", ">= 3"
+  gem "rspec"
 
-  gem "simplecov", ">= 0.20.0", require: false
-  gem "simplecov-lcov", ">= 0.8.0", require: false
+  gem "simplecov", require: false
+  gem "simplecov-lcov", require: false
 end
 
 group :rubocop do
