@@ -5,7 +5,7 @@ Bundler::GemHelper.install_tasks
 
 require "rspec/core/rake_task"
 
-ADAPTERS = %w[postgresql].freeze
+ADAPTERS = %w[mysql2 postgresql sqlite3].freeze
 
 ADAPTERS.each do |adapter|
   desc "Run RSpec code examples for #{adapter} adapter"

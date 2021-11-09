@@ -1,5 +1,25 @@
+mysql:
+  adapter: mysql
+  host: 127.0.0.1
+  database: delayed_job_test
+  username: root
+  port: 3306
+  encoding: utf8
+
+mysql2:
+  adapter: mysql2
+  host: 127.0.0.1
+  database: delayed_job_test
+  username: root
+  port: 3306
+  encoding: utf8
+
 postgresql:
   adapter: postgresql
   database: delayed_job_test
   port: <%= ENV['PGPORT'] || 5432 %>
   username: <%= ENV['PGUSER'] || 'postgres' %>
+
+sqlite3:
+  adapter: sqlite3
+  database: ":memory:"

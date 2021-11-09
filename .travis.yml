@@ -4,6 +4,7 @@ branches:
     - master
     - PUP-11
 services:
+  - mysql
   - postgresql
 env:
   global:
@@ -36,6 +37,12 @@ matrix:
         - ADAPTER=postgresql
         - PGPORT=5433
         - PGUSER=travis
+    - rvm: 2.7.4
+      gemfile: gemfiles/mysql2/master.gemfile
+      before_script: mysql -e 'create database delayed_job_test;'
+      script: bundle exec $COMMAND
+      env:
+        - ADAPTER=mysql2
     
 
 sudo: false
