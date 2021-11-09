@@ -5,14 +5,8 @@ source "https://rubygems.org"
 gem "rake"
 
 group :test do
-  platforms :jruby do
-    gem "activerecord-jdbcmysql-adapter"
-    gem "activerecord-jdbcpostgresql-adapter"
-    gem "activerecord-jdbcsqlite3-adapter"
-  end
-
   platforms :ruby, :mswin, :mingw do
-    gem "pg", "~> 0.18"
+    gem "pg"
   end
 
   gem "rspec"
