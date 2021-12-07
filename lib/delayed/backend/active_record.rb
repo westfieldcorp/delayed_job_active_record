@@ -66,7 +66,7 @@ module Delayed
 
         def self.ready_to_run(worker_name, max_run_time)
           where(
-            "(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR locked_by = ?) AND failed_at IS NULL",
+            "((run_at <= ? AND (locked_at IS NULL OR locked_at < ?)) OR locked_by = ?) AND failed_at IS NULL",
             db_time_now,
             db_time_now - max_run_time,
             worker_name
@@ -151,8 +151,11 @@ module Delayed
         end
 
         def self.reserve_with_scope_using_default_sql(ready_scope, worker, now)
-          # This is our old fashion, tried and true, but slower lookup
-          ready_scope.limit(worker.read_ahead).detect do |job|
+          # This is our old fashion, tried and true, but possibly slower lookup
+          # Instead of reading the entire job record for our detect loop, we select only the id,
+          # and only read the full job record after we've successfully locked the job.
+          # This can have a noticable impact on large read_ahead configurations and large payload jobs.
+          ready_scope.limit(worker.read_ahead).select(:id).detect do |job|
             count = ready_scope.where(id: job.id).update_all(locked_at: now, locked_by: worker.name)
             count == 1 && job.reload
           end

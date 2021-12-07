@@ -12,17 +12,23 @@ group :test do
   end
 
   platforms :ruby, :mswin, :mingw do
-    gem "mysql2", "~> 0.4.5"
-    gem "pg", "~> 0.18"
+    gem "mysql2"
+    gem "pg"
     gem "sqlite3"
   end
 
-  gem "coveralls", require: false
-  gem "rspec", ">= 3"
+  gem "rspec"
+
+  gem "simplecov", require: false
+  gem "simplecov-lcov", require: false
+end
+
+group :rubocop do
   gem "rubocop"
+  gem "rubocop-packaging"
+  gem "rubocop-performance"
   gem "rubocop-rails"
   gem "rubocop-rspec"
-  gem "simplecov", require: false
 end
 
 gemspec
